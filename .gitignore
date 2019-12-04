@@ -1,0 +1,6 @@
+example/Builds*
+example/x64*
+example/*.sdf
+example/*.suo
+example/*.user
+example/lib/wxWidgets-3.1.3*
