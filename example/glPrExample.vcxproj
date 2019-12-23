@@ -41,13 +41,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir);$(SolutionDir)lib/wxWidgets-3.1.3/lib/vc_x64_lib</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir);$(SolutionDir)lib/wxWidgets-3.1.3/lib/vc_x64_lib;$(SolutionDir)lib/glew/lib/x64;$(SolutionDir)lib/glm/lib/x64</LibraryPath>
     <OutDir>$(SolutionDir)Builds\$(Configuration)\x64</OutDir>
     <IntDir>x64\$(Configuration)\$(ProjectName)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir);$(SolutionDir)lib/wxWidgets-3.1.3/lib/vc_x64_lib</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir);$(SolutionDir)lib/wxWidgets-3.1.3/lib/vc_x64_lib;$(SolutionDir)lib/glew/lib/x64;$(SolutionDir)lib/glm/lib/x64</LibraryPath>
     <OutDir>$(SolutionDir)Builds\$(Configuration)\x64</OutDir>
     <IntDir>x64\$(Configuration)\$(ProjectName)</IntDir>
   </PropertyGroup>

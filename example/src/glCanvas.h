@@ -4,11 +4,11 @@
 #include <wx/wx.h>
 
 #define GLEW_STATIC 1
-#include <glew/glew.h>
+#include <glew/include/glew.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <glm/include/glm.hpp>
+#include <glm/include/gtc/matrix_transform.hpp>
+#include <glm/include/gtc/type_ptr.hpp>
 #include <wx/glcanvas.h>
 #include "glShader.h"
 #include "../../include/glPrimitives.h"

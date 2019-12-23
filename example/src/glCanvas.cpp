@@ -135,7 +135,7 @@ void GLCanvas::onPaint(wxPaintEvent& event){
   ////// рисование осей
   createAxis();
     
-  glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f);
+  glm::vec3 position = glm::vec3(0.0f, 0.0f, 33.0f);
   glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
   glm::vec3 front(glm::vec3(0.0f, 0.0f, -1.0f));
     
@@ -166,7 +166,7 @@ void GLCanvas::onPaint(wxPaintEvent& event){
     glGenBuffers(1, &_prvVAO.ebo);
   }
 
-  int pntsCnt = glPV::cylinder(_prvVAO, 100, 100);
+  int pntsCnt = glPV::frustum(_prvVAO, 10, 10, 10, 2);
   if (pntsCnt > 0){
      
     _prvShader.use();

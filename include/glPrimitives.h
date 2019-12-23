@@ -26,7 +26,7 @@
 #pragma once
 
 #define GLEW_STATIC 1
-#include <glew/glew.h>
+#include <glew/include/glew.h>
 
 namespace glPV{
 
@@ -38,6 +38,64 @@ namespace glPV{
     glObject(GLuint _vao = 0, GLuint _vbo = 0, GLuint _ebo = 0) :
       vao(_vao), vbo(_vbo), ebo(_ebo){}
   };
+
+  template<typename T = glObject>
+  size_t frustum(const T& obj, uint32_t diamTop, uint32_t diamBottom, uint32_t height, uint32_t degStep = 1, bool isFillTop = false, bool isFillBottom = false){
+      
+    degStep = max(uint32_t(1), degStep);
+    diamTop = max(uint32_t(1), diamTop);
+    diamBottom = max(uint32_t(1), diamBottom);
+           
+    GLfloat deg2rad = glm::pi<GLfloat>() / 180.f,
+            radTop = diamTop / 2.f,
+            radBottom = diamBottom / 2.f;
+
+    size_t vsz = 360 / degStep * 2;
+
+    std::vector<glm::vec3> vertices(vsz);
+                
+    for (int i = 0; i < vsz / 2; i += degStep){
+
+      vertices[i * 2].x = 0;
+      vertices[i * 2].y = radTop * sin(i * 2 * deg2rad);
+      vertices[i * 2].z = radTop * cos(i * 2 * deg2rad);
+    
+      vertices[i * 2 + 1].x = height;
+      vertices[i * 2 + 1].y = radBottom * sin((i * 2 + degStep / 2.f) * deg2rad);
+      vertices[i * 2 + 1].z = radBottom * cos((i * 2 + degStep / 2.f) * deg2rad);
+    }
+         
+    ////////////////////////////////////////
+
+    std::vector<int> indices;
+    indices.reserve(vsz * 3);
+           
+    for (int i = 0; i < (vsz - 2); ++i){
+
+      indices.push_back(i);
+      indices.push_back(i + 1);
+      indices.push_back(i + 2);
+    }
+
+    ////////////////////////////////////////
+
+    glBindVertexArray(obj.vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
+    glBufferData(GL_ARRAY_BUFFER, vsz * sizeof(GLfloat), vertices.data(), GL_DYNAMIC_DRAW);
+      
+    size_t isz = indices.size();
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), indices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+
+    return isz;
+  }
 
   template<typename T = glObject>
   int cylinder(const T& obj, uint32_t diam, uint32_t leng){

@@ -2,8 +2,8 @@
 #pragma once
 
 #include "stdafx.h"
-#include <glew/glew.h>
-#include <glm/gtc/type_ptr.hpp>
+#include <glew/include/glew.h>
+#include <glm/include/gtc/type_ptr.hpp>
 
 class GLShader
 {
