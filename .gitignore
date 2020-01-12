@@ -4,3 +4,5 @@ example/*.sdf
 example/*.suo
 example/*.user
 example/lib/wxWidgets-3.1.3*
+example/lib/glew
+example/lib/glm

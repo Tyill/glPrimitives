@@ -38,134 +38,120 @@ namespace glPV{
     glObject(GLuint _vao = 0, GLuint _vbo = 0, GLuint _ebo = 0) :
       vao(_vao), vbo(_vbo), ebo(_ebo){}
   };
+    
+  static void _baseObj(float diamTop,
+                    float diamBottom,
+                        float height,
+                    uint32_t degStep, 
+                         float xOffs,
+                      uint32_t vOffs,
+    std::vector<glm::vec3>& outVertices,
+           std::vector<int>& outIndices){
 
-  template<typename T = glObject>
-  size_t frustum(const T& obj, uint32_t diamTop, uint32_t diamBottom, uint32_t height, uint32_t degStep = 1, bool isFillTop = false, bool isFillBottom = false){
-      
-    degStep = max(uint32_t(1), degStep);
-    diamTop = max(uint32_t(1), diamTop);
-    diamBottom = max(uint32_t(1), diamBottom);
-           
-    GLfloat deg2rad = glm::pi<GLfloat>() / 180.f,
-            radTop = diamTop / 2.f,
-            radBottom = diamBottom / 2.f;
+    degStep = std::max(uint32_t(1), std::min(uint32_t(10), degStep));
+
+    float deg2rad = glm::pi<float>() / 180.f,
+          radTop = diamTop / 2.f,
+          radBottom = diamBottom / 2.f;
 
     size_t vsz = 360 / degStep * 2;
 
-    std::vector<glm::vec3> vertices(vsz);
-                
-    for (int i = 0; i < vsz / 2; i += degStep){
+    outVertices.resize(vsz);
 
-      vertices[i * 2].x = 0;
-      vertices[i * 2].y = radTop * sin(i * 2 * deg2rad);
-      vertices[i * 2].z = radTop * cos(i * 2 * deg2rad);
-    
-      vertices[i * 2 + 1].x = height;
-      vertices[i * 2 + 1].y = radBottom * sin((i * 2 + degStep / 2.f) * deg2rad);
-      vertices[i * 2 + 1].z = radBottom * cos((i * 2 + degStep / 2.f) * deg2rad);
+    for (int i = 0; i < vsz / 2; ++i){
+
+      GLfloat deg = i * degStep * deg2rad;
+
+      outVertices[i * 2].x = xOffs;
+      outVertices[i * 2].y = radTop * sin(deg);
+      outVertices[i * 2].z = radTop * cos(deg);
+
+      outVertices[i * 2 + 1].x = xOffs + height;
+      outVertices[i * 2 + 1].y = radBottom * sin(deg + degStep / 2.f * deg2rad);
+      outVertices[i * 2 + 1].z = radBottom * cos(deg + degStep / 2.f * deg2rad);
     }
-         
-    ////////////////////////////////////////
 
-    std::vector<int> indices;
-    indices.reserve(vsz * 3);
-           
+    ////////////////////////////////////////
+       
+    outIndices.clear();
+    outIndices.reserve(vsz * 3);
+
     for (int i = 0; i < (vsz - 2); ++i){
 
-      indices.push_back(i);
-      indices.push_back(i + 1);
-      indices.push_back(i + 2);
+      outIndices.push_back(i + vOffs);
+      outIndices.push_back(i + 1 + vOffs);
+      outIndices.push_back(i + 2 + vOffs);
     }
 
-    ////////////////////////////////////////
+    outIndices.push_back(vsz - 2 + vOffs);
+    outIndices.push_back(vsz - 1 + vOffs);
+    outIndices.push_back(0 + vOffs);
 
-    glBindVertexArray(obj.vao);
+    outIndices.push_back(vsz - 1 + vOffs);
+    outIndices.push_back(0 + vOffs);
+    outIndices.push_back(1 + vOffs);
+  }
 
-    glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
-    glBufferData(GL_ARRAY_BUFFER, vsz * sizeof(GLfloat), vertices.data(), GL_DYNAMIC_DRAW);
+  static size_t frustum(const glObject& obj, uint32_t diamTop, uint32_t diamBottom, uint32_t height, uint32_t degStep = 10){
       
-    size_t isz = indices.size();
+    std::vector<glm::vec3> topVertices;
+    std::vector<int> topIndices;
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), indices.data(), GL_STATIC_DRAW);
+    _baseObj(diamTop, 0, 0, degStep, 0, 0, topVertices, topIndices);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindVertexArray(0);
-
-    return isz;
-  }
-
-  template<typename T = glObject>
-  int cylinder(const T& obj, uint32_t diam, uint32_t leng){
-
-    std::vector<glm::vec3> vertices(362);
-
-    GLfloat deg = glm::pi<GLfloat>() / 180.f,
-      rad = diam / 2.f;
-
-    for (int i = 0; i < 360; ++i){
-
-      if (i % 2)
-        vertices[i].x = leng;
-      else
-        vertices[i].x = 0;
-
-      vertices[i].y = rad * sin(deg * i);
-      vertices[i].z = rad * cos(deg * i);
-    }
-
-    vertices[360].x = 0;
-    vertices[360].y = 0;
-    vertices[360].z = 0;
-
-    vertices[361].x = leng;
-    vertices[361].y = 0;
-    vertices[361].z = 0;
+    size_t tsz = topVertices.size();
 
     ////////////////////////////////////////
 
-    std::vector<int> indices;
-    indices.reserve(360 + 360 + 3 + 360 * 3);
+    std::vector<glm::vec3> bodyVertices;
+    std::vector<int> bodyIndices;
 
-    for (int i = 0; i < 360; ++i)
-      indices.push_back(i);
+    _baseObj(diamTop, diamBottom, height, degStep, 0, uint32_t(tsz), bodyVertices, bodyIndices);
 
-    for (int i = 1; i < 360; ++i)
-      indices.push_back(i);
-
-    indices.push_back(1);
-    indices.push_back(0);
-    indices.push_back(359);
+    size_t bsz = bodyVertices.size();
 
     ////////////////////////////////////////
 
-    for (int i = 0; i < 360; ++i){
+    std::vector<glm::vec3> bottVertices;
+    std::vector<int> bottIndices;
 
-      if (i % 2){
-        indices.push_back(361);
-        indices.push_back(i);
-        indices.push_back(i + 2);
-      }
-      else{
-        indices.push_back(360);
-        indices.push_back(i);
-        indices.push_back(i + 2);
-      }
-    }
+    size_t bmsz = bodyVertices.size();
+
+    _baseObj(0, diamBottom, 0, degStep, height, uint32_t(tsz + bsz), bottVertices, bottIndices);
 
     ////////////////////////////////////////
+
+    size_t vsz = tsz + bsz + bmsz;
+
+    std::vector<glm::vec3> commVertices(vsz);
     
+    memcpy(commVertices.data(), topVertices.data(), tsz * sizeof(glm::vec3));
+    memcpy(commVertices.data() + tsz, bodyVertices.data(), bsz * sizeof(glm::vec3));
+    memcpy(commVertices.data() + tsz + bsz, bottVertices.data(), bmsz * sizeof(glm::vec3));
+
+    ////////////////////////////////////////
+
+    tsz = topIndices.size();
+    bsz = bodyIndices.size();
+    bmsz = bottIndices.size();
+
+    size_t isz = tsz + bsz + bmsz;
+
+    std::vector<int> commIndices(isz);
+
+    memcpy(commIndices.data(), topIndices.data(), tsz * sizeof(int));
+    memcpy(commIndices.data() + tsz, bodyIndices.data(), bsz * sizeof(int));
+    memcpy(commIndices.data() + tsz + bsz, bottIndices.data(), bmsz * sizeof(int));
+    
+    ////////////////////////////////////////       
+
     glBindVertexArray(obj.vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
-    glBufferData(GL_ARRAY_BUFFER, 362 * sizeof(GLfloat), vertices.data(), GL_DYNAMIC_DRAW);
-
-    int isz = int(indices.size());
-
+    glBufferData(GL_ARRAY_BUFFER, vsz * 3 * sizeof(GLfloat), commVertices.data(), GL_DYNAMIC_DRAW);
+    
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), indices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), commIndices.data(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
@@ -173,24 +159,81 @@ namespace glPV{
     glBindVertexArray(0);
 
     return isz;
-
   }
 
-  template<typename T = glObject>
-  int cone(const T&, uint32_t diam, uint32_t height){
+  static size_t cylinder(const glObject& obj, uint32_t diam, uint32_t height, uint32_t degStep = 10){
 
-    return 0;
+    return frustum(obj, diam, diam, height, degStep);
   }
 
-  template<typename T = glObject>
-  int rectangle(const T&, uint32_t width, uint32_t height, uint32_t leng){
+  static size_t cone(const glObject& obj, uint32_t diam, uint32_t height, uint32_t degStep = 10){
 
-    return 0;
+    return frustum(obj, 0, diam, height, degStep);
   }
 
-  template<typename T = glObject>
-  int sphere(const T&, uint32_t diam){
+  static size_t sphere(const glObject& obj, uint32_t diam, uint32_t degStep = 10){
+       
+    uint32_t slices = diam * 3;
 
-    return 0;
-  }  
+    float diamStep = diam / float(slices);
+    size_t vsz = 0,
+           isz = 0, 
+           vOffs = 0,
+           iOffs = 0;
+    
+    std::vector<glm::vec3> commVertices, vertices;
+    std::vector<int> commIndices, indices;
+
+    for (uint32_t i = 0; i < slices; ++i){
+     
+      float diamTop = 2 * sqrt(std::max(0.f, diam * diam / 4.f - pow((slices - i) * diamStep / 2.f, 2))),
+            diamBott = 2 * sqrt(diam * diam / 4.f - pow((slices - i - 1) * diamStep / 2.f, 2));
+
+      if (i >= slices / 2){
+        diamTop = 2 * sqrt(diam * diam / 4.f - pow(i * diamStep / 2.f, 2));
+        diamBott = 2 * sqrt(std::max(0.f, diam * diam / 4.f - pow((i + 1) * diamStep / 2.f, 2)));
+      }
+        
+      _baseObj(diamTop, diamBott, diamStep, degStep, i * diamStep, uint32_t(vOffs), vertices, indices);
+
+      if (i == 0){
+        vsz = vertices.size();
+        isz = indices.size();
+
+        commVertices.resize(vsz * slices);
+        commIndices.resize(isz * slices);
+      }
+
+      memcpy(commVertices.data() + vOffs, vertices.data(), vsz * sizeof(glm::vec3));
+      memcpy(commIndices.data() + iOffs, indices.data(), isz * sizeof(int));
+
+      vOffs += vsz;
+      iOffs += isz;
+    }
+
+    vsz = vOffs;
+    isz = iOffs;
+
+    ////////////////////////////////////////       
+
+    glBindVertexArray(obj.vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
+    glBufferData(GL_ARRAY_BUFFER, vsz * 3 * sizeof(GLfloat), commVertices.data(), GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), commIndices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+
+    return isz;
+  }
+
+  static size_t rectangle(const glObject& obj, uint32_t width, uint32_t height, uint32_t leng){
+
+    return 0;//frustum(obj, 0, diam, height, degStep);
+  }   
 }

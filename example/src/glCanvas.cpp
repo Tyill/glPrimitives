@@ -166,7 +166,7 @@ void GLCanvas::onPaint(wxPaintEvent& event){
     glGenBuffers(1, &_prvVAO.ebo);
   }
 
-  int pntsCnt = glPV::frustum(_prvVAO, 10, 10, 10, 2);
+  size_t pntsCnt = glPV::cylinder(_prvVAO, 10,10);
   if (pntsCnt > 0){
      
     _prvShader.use();
