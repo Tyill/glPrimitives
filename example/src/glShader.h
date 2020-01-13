@@ -74,7 +74,8 @@ public:
   }
 
 	void use(){
-		glUseProgram(ProgramId);
+    if (ProgramId > 0)
+		  glUseProgram(ProgramId);
 	}
 
 	bool setParam(const std::string &name, bool value) const{

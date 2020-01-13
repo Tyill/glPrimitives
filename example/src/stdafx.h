@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstdint>
 
+
 void statusMess(const std::string& mess);
 
 #define FUNC_BEGIN try {

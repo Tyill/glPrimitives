@@ -94,30 +94,111 @@ GLCanvas::~GLCanvas(){
 
 void GLCanvas::connects(){
 
-  Bind(wxEVT_PAINT, &GLCanvas::onPaint, this);
-  Bind(wxEVT_KEY_DOWN, [this](wxKeyEvent& event) {
+  auto setRotateCam = [this](int key){
 
-    int key = event.GetKeyCode();
-
-    if (key == 65)       // left by Y
+    if (key == 65)       // A left by Y
       --_rotateByY;
 
-    else if (key == 68)  // right by Y
+    else if (key == 68)  // D right by Y
       ++_rotateByY;
 
-    else if (key == 87)  // up by X
+    else if (key == 87)  // W up by X
       ++_rotateByX;
 
-    else if (key == 83)  // down by X
+    else if (key == 83)  // S down by X
       --_rotateByX;
+    
+    Refresh(false);
+  };
 
+  ui.btnW = new wxButton(this, wxID_ANY, "W", wxPoint(100, 100), wxSize(30, 30));
+  ui.btnW->Bind(wxEVT_BUTTON, [this, setRotateCam](wxCommandEvent& evt){
+       
+    setRotateCam(87);
+  });
+
+  ui.btnS = new wxButton(this, wxID_ANY, "S", wxPoint(100, 150), wxSize(30, 30));
+  ui.btnS->Bind(wxEVT_BUTTON, [this, setRotateCam](wxCommandEvent& evt){
+    setRotateCam(83);
+  });
+
+  ui.btnA = new wxButton(this, wxID_ANY, "A", wxPoint(50, 150), wxSize(30, 30));
+  ui.btnA->Bind(wxEVT_BUTTON, [this, setRotateCam](wxCommandEvent& evt){
+    setRotateCam(65);
+  });
+
+  ui.btnD = new wxButton(this, wxID_ANY, "D", wxPoint(150, 150), wxSize(30, 30));
+  ui.btnD->Bind(wxEVT_BUTTON, [this, setRotateCam](wxCommandEvent& evt){
+    setRotateCam(68);
+  });
+
+  ui.cmbFigure = new wxChoice(this, wxID_ANY, wxPoint(50, 200));
+  ui.cmbFigure->Append(vector<wxString>{"frustum", "cylinder", "tube", "cone",
+                                        "pyramid", "disk", "sphere", "ring", "parallepd"});
+  ui.cmbFigure->Select(0);
+  ui.cmbFigure->Bind(wxEVT_CHOICE, [this](wxCommandEvent& evt){
+      Refresh(false);
+  });
+  
+  ui.chbFill = new wxCheckBox(this, wxID_ANY, "fill color", wxPoint(50, 240));
+  ui.chbFill->SetBackgroundColour(*wxWHITE);
+  ui.chbFill->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& evt){
     Refresh(false);
   });
+
+  wxFont fnt = GetFont();
+  fnt.SetPointSize(18);
+
+  ui.lbX = new wxStaticText(this, wxID_ANY, "X");  
+  ui.lbX->SetFont(fnt);
+  ui.lbX->SetBackgroundColour(*wxWHITE);
+  ui.lbX->SetForegroundColour(*wxRED);
+
+  ui.lbY = new wxStaticText(this, wxID_ANY, "Y");
+  ui.lbY->SetFont(fnt);
+  ui.lbY->SetBackgroundColour(*wxWHITE);
+  ui.lbY->SetForegroundColour(*wxGREEN);
+
+  ui.lbZ = new wxStaticText(this, wxID_ANY, "Z");
+  ui.lbZ->SetFont(fnt);
+  ui.lbZ->SetBackgroundColour(*wxWHITE);
+  ui.lbZ->SetForegroundColour(*wxBLUE);
+
+  Bind(wxEVT_PAINT, &GLCanvas::onPaint, this);
+  Bind(wxEVT_KEY_DOWN, [this, setRotateCam](wxKeyEvent& event) {
+        
+    setRotateCam(event.GetKeyCode());
+
+  });
+  Bind(wxEVT_MOUSEWHEEL, [this](wxMouseEvent& evt){
+
+      int sign = evt.GetWheelRotation() < 0 ? 1 : -1;
+
+      _pos += sign;
+
+      Refresh(false);
+
+  }, wxID_ANY);
   Bind(wxEVT_SIZE, [this](wxSizeEvent& event){
 
     wxSize wsz = GetClientSize();
 
-    glViewport(0, 0, wsz.GetWidth(), wsz.GetHeight());
+    int w = wsz.GetWidth(), 
+        h = wsz.GetHeight();
+
+    glViewport(0, 0, w, h);
+
+    ui.cmbFigure->SetPosition(wxPoint(50, 200));
+    ui.chbFill->SetPosition(wxPoint(50, 240));
+
+    ui.btnW->SetPosition(wxPoint(100, 100));
+    ui.btnS->SetPosition(wxPoint(100, 150));
+    ui.btnA->SetPosition(wxPoint(50, 150));
+    ui.btnD->SetPosition(wxPoint(150, 150));
+
+    ui.lbX->SetPosition(wxPoint(50, h - 100));
+    ui.lbY->SetPosition(wxPoint(100, h - 100));
+    ui.lbZ->SetPosition(wxPoint(150, h - 100));
 
     event.Skip();
   });
@@ -128,14 +209,14 @@ void GLCanvas::onPaint(wxPaintEvent& event){
   glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glPolygonMode(GL_FRONT_AND_BACK, ui.chbFill->IsChecked() ? GL_FILL : GL_LINE);
 
   wxSize plotSz = GetClientSize();
   
   ////// рисование осей
   createAxis();
     
-  glm::vec3 position = glm::vec3(0.0f, 0.0f, 33.0f);
+  glm::vec3 position = glm::vec3(0.0f, 0.0f, _pos);
   glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
   glm::vec3 front(glm::vec3(0.0f, 0.0f, -1.0f));
     
@@ -165,8 +246,21 @@ void GLCanvas::onPaint(wxPaintEvent& event){
     glGenBuffers(1, &_prvVAO.vbo);
     glGenBuffers(1, &_prvVAO.ebo);
   }
+   
+  string selFigure = ui.cmbFigure->GetStringSelection();
+  
+  size_t pntsCnt = 0;
 
-  size_t pntsCnt = glPV::cylinder(_prvVAO, 10,10);
+  if      (selFigure == "frustum")   pntsCnt = glPV::frustum(_prvVAO, 10, 5, 20);
+  else if (selFigure == "cylinder")  pntsCnt = glPV::cylinder(_prvVAO, 10, 20);
+  else if (selFigure == "tube")      pntsCnt = glPV::tube(_prvVAO, 10, 15, 20);
+  else if (selFigure == "cone")      pntsCnt = glPV::cone(_prvVAO, 10, 20);
+  else if (selFigure == "pyramid")   pntsCnt = glPV::pyramid(_prvVAO, 10, 20);
+  else if (selFigure == "disk")      pntsCnt = glPV::disk(_prvVAO, 10, 5);
+  else if (selFigure == "sphere")    pntsCnt = glPV::sphere(_prvVAO, 10);
+  else if (selFigure == "ring")      pntsCnt = glPV::ring(_prvVAO, 10);
+  else if (selFigure == "parallepd") pntsCnt = glPV::parallepd(_prvVAO, 10, 10, 10);
+  
   if (pntsCnt > 0){
      
     _prvShader.use();

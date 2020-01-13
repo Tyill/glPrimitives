@@ -21,13 +21,30 @@ public:
     
 private:
    
+    struct UI{
+      wxButton* btnW = nullptr,
+              * btnS = nullptr,
+              * btnA = nullptr,
+              * btnD = nullptr;
+
+      wxStaticText* lbX = nullptr,
+                  * lbY = nullptr,
+                  * lbZ = nullptr;
+
+      wxChoice* cmbFigure = nullptr;
+
+      wxCheckBox* chbFill = nullptr;
+
+    };
+    UI ui;
+
     wxGLContext* _glContext = nullptr;
     
     glPV::glObject _axisVAO, _prvVAO;   
    
     GLShader _axisShader, _prvShader;
           
-    float _rotateByX = 0, _rotateByY = 0;
+    float _rotateByX = 0, _rotateByY = 0, _pos = 30.f;
 
    
     void connects();

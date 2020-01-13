@@ -18,19 +18,8 @@ public:
 
 private:
  
-    struct UI{
-    };
-    UI ui;
-   
-    void createTools();      
-    void load();
-
-    std::map<std::string, std::string> init(const std::string& path);
   
-
-
-    // events
-    
+               
 };
 
 
