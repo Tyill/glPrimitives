@@ -25,7 +25,9 @@ private:
       wxButton* btnW = nullptr,
               * btnS = nullptr,
               * btnA = nullptr,
-              * btnD = nullptr;
+              * btnD = nullptr,
+              * btnMP = nullptr,
+              * btnMN = nullptr;
 
       wxStaticText* lbX = nullptr,
                   * lbY = nullptr,

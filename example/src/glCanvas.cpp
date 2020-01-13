@@ -132,6 +132,22 @@ void GLCanvas::connects(){
     setRotateCam(68);
   });
 
+  ui.btnMP = new wxButton(this, wxID_ANY, "+", wxPoint(200, 100), wxSize(30, 30));
+  ui.btnMP->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt){
+    
+    _pos -= 1;
+
+    Refresh(false);
+  });
+
+  ui.btnMN = new wxButton(this, wxID_ANY, "-", wxPoint(200, 150), wxSize(30, 30));
+  ui.btnMN->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt){
+   
+    _pos += 1;
+
+    Refresh(false);
+  });
+
   ui.cmbFigure = new wxChoice(this, wxID_ANY, wxPoint(50, 200));
   ui.cmbFigure->Append(vector<wxString>{"frustum", "cylinder", "tube", "cone",
                                         "pyramid", "disk", "sphere", "ring", "parallepd"});
@@ -195,6 +211,8 @@ void GLCanvas::connects(){
     ui.btnS->SetPosition(wxPoint(100, 150));
     ui.btnA->SetPosition(wxPoint(50, 150));
     ui.btnD->SetPosition(wxPoint(150, 150));
+    ui.btnMP->SetPosition(wxPoint(200, 100));
+    ui.btnMN->SetPosition(wxPoint(200, 150));
 
     ui.lbX->SetPosition(wxPoint(50, h - 100));
     ui.lbY->SetPosition(wxPoint(100, h - 100));
@@ -258,7 +276,7 @@ void GLCanvas::onPaint(wxPaintEvent& event){
   else if (selFigure == "pyramid")   pntsCnt = glPV::pyramid(_prvVAO, 10, 20);
   else if (selFigure == "disk")      pntsCnt = glPV::disk(_prvVAO, 10, 5);
   else if (selFigure == "sphere")    pntsCnt = glPV::sphere(_prvVAO, 10);
-  else if (selFigure == "ring")      pntsCnt = glPV::ring(_prvVAO, 10);
+  else if (selFigure == "ring")      pntsCnt = glPV::ring(_prvVAO, 10, 30);
   else if (selFigure == "parallepd") pntsCnt = glPV::parallepd(_prvVAO, 10, 10, 10);
   
   if (pntsCnt > 0){

@@ -418,12 +418,13 @@ namespace glPV{
     return isz;
   }
 
-  static size_t ring(const glObject& obj, uint32_t diam, uint32_t smooth = 10, uint32_t degStep = 10){
+  static size_t ring(const glObject& obj, uint32_t ringDiam, uint32_t extDiam, uint32_t smooth = 1, uint32_t degStep = 10){
 
-    uint32_t slices = 36 * smooth;
+    uint32_t slices = ringDiam * smooth;
 
     float deg2rad = glm::pi<float>() / 180.f,
-          ringStep = diam / float(slices);
+          extRad = extDiam / 2.f,
+          ringStep = 360.f / slices * deg2rad;
     size_t vsz = 0,
            isz = 0,
            vOffs = 0,
@@ -432,19 +433,17 @@ namespace glPV{
     std::vector<glm::vec3> commVertices, vertices;
     std::vector<int> commIndices, indices;
 
-    for (uint32_t i = 0; i < slices; ++i){
-           
-      GLfloat deg = i * degStep * deg2rad;      
-
-      _baseObj(diam,
-               diam,
-                  0,
-            degStep,
-    glm::vec3(i * degStep, i * degStep, 0),//diam * sin(deg), diam * cos(deg)),
-    glm::vec3((i + 1) * degStep, (i + 1) * degStep, 0),
-    uint32_t(vOffs),
-           vertices,
-           indices);
+    for (uint32_t i = 0; i < slices/2; ++i){
+     
+      _baseObj(ringDiam,
+               ringDiam,
+                      0,
+                degStep,
+        glm::vec3(extRad * tan(i * ringStep), extRad * sin(i * ringStep), extRad * cos(i * ringStep)),
+        glm::vec3(extRad * tan((i + 1) * ringStep), extRad * sin((i + 1) * ringStep), extRad * cos((i + 1) * ringStep)),
+        uint32_t(vOffs),
+               vertices,
+               indices);
 
       if (i == 0){
         vsz = vertices.size();
