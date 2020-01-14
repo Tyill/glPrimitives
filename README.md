@@ -1,6 +1,6 @@
 # GLPrimitives
 
-OpenGL 3.3 primitives (cone, cylinder, sphere..) [one header library](https://github.com/Tyill/glPrimitives/blob/master/include/glPrimitives.h).
+OpenGL 3.3 primitives (cone, cylinder, sphere..) [one header library](https://github.com/Tyill/glPrimitives/blob/master/include).
 
 [Example application on wxWidgets for win64](https://github.com/Tyill/glPrimitives/tree/master/example/Builds)  
 
