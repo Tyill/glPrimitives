@@ -8,39 +8,6 @@
 
 using namespace std;
 
-const GLchar* vertexShaderSrc = "     \
-  in vec3 position;                   \
-  out vec3 setColor;                  \
-  uniform vec3 color;                 \
-  uniform mat4 model;                 \
-  uniform mat4 view;                  \
-  uniform mat4 projection;            \
-  void main(){                        \
-    gl_Position = projection * view * model * vec4(position, 1.0f); \
-    setColor = color;                 \
-  }";
-
-
-const GLchar* vertexColorShaderSrc = "\
-  in vec3 position;                   \
-  in vec3 color;                      \
-  out vec3 setColor;                  \
-  uniform mat4 model;                 \
-  uniform mat4 view;                  \
-  uniform mat4 projection;            \
-  void main(){                        \
-    gl_Position = projection * view * model * vec4(position, 1.0f); \
-    setColor = color;                 \
-  }";
-
-
-const GLchar* fragmentShaderSrc = "   \
-  in vec3 setColor;                   \
-  out vec4 outColor;                  \
-  void main(){                        \
-    outColor = vec4(setColor, 1.0f);  \
-  }";
-
 GLCanvas::GLCanvas(wxWindow* parent, const wxGLAttributes& canvasAttrs)
   : wxGLCanvas(parent, canvasAttrs){
     
@@ -65,6 +32,39 @@ GLCanvas::GLCanvas(wxWindow* parent, const wxGLAttributes& canvasAttrs)
 
   // z-буфер отслеживается (gl проверяет глубину объектов)
   glEnable(GL_DEPTH_TEST);
+    
+  const GLchar* vertexShaderSrc = "     \
+    in vec3 position;                   \
+    out vec3 setColor;                  \
+    uniform vec3 color;                 \
+    uniform mat4 model;                 \
+    uniform mat4 view;                  \
+    uniform mat4 projection;            \
+    void main(){                        \
+      gl_Position = projection * view * model * vec4(position, 1.0f); \
+      setColor = color;                 \
+    }";
+  
+  
+  const GLchar* vertexColorShaderSrc = "\
+    in vec3 position;                   \
+    in vec3 color;                      \
+    out vec3 setColor;                  \
+    uniform mat4 model;                 \
+    uniform mat4 view;                  \
+    uniform mat4 projection;            \
+    void main(){                        \
+      gl_Position = projection * view * model * vec4(position, 1.0f); \
+      setColor = color;                 \
+    }";
+  
+  
+  const GLchar* fragmentShaderSrc = "   \
+    in vec3 setColor;                   \
+    out vec4 outColor;                  \
+    void main(){                        \
+      outColor = vec4(setColor, 1.0f);  \
+    }";
 
   string err;
   if (!_axisShader.setCode(vertexColorShaderSrc, fragmentShaderSrc, err) || 
@@ -83,7 +83,7 @@ GLCanvas::~GLCanvas(){
     if (_axisVAO.vao > 0){
       glDeleteVertexArrays(1, &_axisVAO.vao);
       glDeleteBuffers(1, &_axisVAO.vbo);
-      glDeleteBuffers(1, &_axisVAO.ebo);
+      glDeleteBuffers(1, &_axisVAO.ibo);
     }
 
     glFinish();
@@ -107,8 +107,16 @@ void GLCanvas::connects(){
 
     else if (key == 83)  // S down by X
       --_rotateByX;
+
+    else if (key == 388)  // + 
+      _pos -= 1;
+
+    else if (key == 390)  // -
+      _pos += 1;
     
     Refresh(false);
+
+    SetFocus();
   };
 
   ui.btnW = new wxButton(this, wxID_ANY, "W", wxPoint(100, 100), wxSize(30, 30));
@@ -136,8 +144,9 @@ void GLCanvas::connects(){
   ui.btnMP->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt){
     
     _pos -= 1;
-
+    
     Refresh(false);
+    SetFocus();
   });
 
   ui.btnMN = new wxButton(this, wxID_ANY, "-", wxPoint(200, 150), wxSize(30, 30));
@@ -146,6 +155,7 @@ void GLCanvas::connects(){
     _pos += 1;
 
     Refresh(false);
+    SetFocus();
   });
 
   ui.cmbFigure = new wxChoice(this, wxID_ANY, wxPoint(50, 200));
@@ -154,12 +164,14 @@ void GLCanvas::connects(){
   ui.cmbFigure->Select(0);
   ui.cmbFigure->Bind(wxEVT_CHOICE, [this](wxCommandEvent& evt){
       Refresh(false);
+      SetFocus();
   });
   
   ui.chbFill = new wxCheckBox(this, wxID_ANY, "fill color", wxPoint(50, 240));
   ui.chbFill->SetBackgroundColour(*wxWHITE);
   ui.chbFill->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& evt){
     Refresh(false);
+    SetFocus();
   });
 
   wxFont fnt = GetFont();
@@ -262,7 +274,7 @@ void GLCanvas::onPaint(wxPaintEvent& event){
   if (_prvVAO.vao == 0){
     glGenVertexArrays(1, &_prvVAO.vao);
     glGenBuffers(1, &_prvVAO.vbo);
-    glGenBuffers(1, &_prvVAO.ebo);
+    glGenBuffers(1, &_prvVAO.ibo);
   }
    
   string selFigure = ui.cmbFigure->GetStringSelection();

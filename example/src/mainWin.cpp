@@ -15,11 +15,11 @@ void statusMess(const std::string& mess){
     mainWin->SetStatusText(mess);
 }
 
-MainWin::MainWin(App* app_) :    
+MainWin::MainWin(App* _app) :    
     wxFrame(NULL, wxID_ANY, "glPrExample", wxDefaultPosition, wxDefaultSize,
     wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE | wxMAXIMIZE){
      
-    app = app_;
+    app = _app;
     mainWin = this;
 
     this->SetBackgroundColour(wxSystemSettings::GetColour(wxSystemColour::wxSYS_COLOUR_BTNFACE));
@@ -30,18 +30,12 @@ MainWin::MainWin(App* app_) :
     CreateStatusBar();
     SetStatusText("");
 
-    app->Bind(wxEVT_KEY_DOWN, [this](wxKeyEvent& event){
-
-        event.Skip();
-    });
-
     wxGLAttributes vAttrs;
     vAttrs.PlatformDefaults().Defaults().EndList();
 
     GLCanvas* glCanvas = new GLCanvas(this, vAttrs);
     glCanvas->SetWindowStyle(wxBORDER_SIMPLE);
-
-   
+      
 
     mainSizer->Add(glCanvas, wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT, 5));
     

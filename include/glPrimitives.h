@@ -35,12 +35,12 @@
 namespace glPV{
 
   struct glObject{
-    GLuint vao = 0,
-           vbo = 0,
-           ebo = 0;
+    GLuint vao = 0, // Vertex Array Object
+           vbo = 0, // Vertex Buffer Object
+           ibo = 0; // Index Buffer Object
 
-    glObject(GLuint _vao = 0, GLuint _vbo = 0, GLuint _ebo = 0) :
-      vao(_vao), vbo(_vbo), ebo(_ebo){}
+    glObject(GLuint _vao = 0, GLuint _vbo = 0, GLuint _ibo = 0) :
+      vao(_vao), vbo(_vbo), ibo(_ibo){}
   };
     
   static void _baseObj(float diamTop,
@@ -97,8 +97,15 @@ namespace glPV{
     outIndices.push_back(1 + vOffs);
   }
 
+  /// frustum
+  /// @param[in] obj - glObject struct
+  /// @param[in] diamTop - diametr top
+  /// @param[in] diamBottom - diametr bottom
+  /// @param[in] height - height of figure
+  /// @param[in] degStep - coef smooth of surface
+  /// @return Index Buffer size
   static size_t frustum(const glObject& obj, uint32_t diamTop, uint32_t diamBottom, uint32_t height, uint32_t degStep = 10){
-      
+   
     std::vector<glm::vec3> topVertices;
     std::vector<int> topIndices;
 
@@ -155,7 +162,7 @@ namespace glPV{
     glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
     glBufferData(GL_ARRAY_BUFFER, vsz * 3 * sizeof(GLfloat), commVertices.data(), GL_DYNAMIC_DRAW);
     
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), commIndices.data(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
@@ -166,12 +173,30 @@ namespace glPV{
     return isz;
   }
 
+  /// cylinder
+  /// @param[in] obj - glObject struct
+  /// @param[in] diam - diametr 
+  /// @param[in] height - height of figure
+  /// @param[in] degStep - coef smooth of surface
+  /// @return Index Buffer size
   static size_t cylinder(const glObject& obj, uint32_t diam, uint32_t height, uint32_t degStep = 10){
+
+    diam = std::max(uint32_t(1), diam);
 
     return frustum(obj, diam, diam, height, degStep);
   }
 
+  /// tube
+  /// @param[in] obj - glObject struct
+  /// @param[in] innerDiam - inner diametr 
+  /// @param[in] extDiam - external diametr 
+  /// @param[in] height - height of figure
+  /// @param[in] degStep - coef smooth of surface
+  /// @return Index Buffer size
   static size_t tube(const glObject& obj, uint32_t innerDiam, uint32_t extDiam, uint32_t height, uint32_t degStep = 10){
+
+    innerDiam = std::max(uint32_t(1), innerDiam);
+    extDiam = std::max(uint32_t(1), extDiam);
 
     std::vector<glm::vec3> commVertices;
     std::vector<int> commIndices;
@@ -258,7 +283,7 @@ namespace glPV{
     glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
     glBufferData(GL_ARRAY_BUFFER, vsz * 3 * sizeof(GLfloat), commVertices.data(), GL_DYNAMIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), commIndices.data(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
@@ -269,88 +294,120 @@ namespace glPV{
     return isz;
   }
 
+  /// cone
+  /// @param[in] obj - glObject struct
+  /// @param[in] diam - diametr 
+  /// @param[in] height - height of figure
+  /// @param[in] degStep - coef smooth of surface
+  /// @return Index Buffer size
   static size_t cone(const glObject& obj, uint32_t diam, uint32_t height, uint32_t degStep = 10){
+
+    diam = std::max(uint32_t(1), diam);
 
     return frustum(obj, 0, diam, height, degStep);
   }
 
-  static size_t pyramid(const glObject& obj, uint32_t diam, uint32_t height, uint32_t degs = 3){
+  /// pyramid
+  /// @param[in] obj - glObject struct
+  /// @param[in] diam - diametr 
+  /// @param[in] height - height of figure
+  /// @param[in] angles - angles of pyramid
+  /// @return Index Buffer size
+  static size_t pyramid(const glObject& obj, uint32_t diam, uint32_t height, uint32_t angles = 3){
 
-      return frustum(obj, 0, diam, height, 360 / degs);
+    diam = std::max(uint32_t(1), diam);
+
+    return frustum(obj, 0, diam, height, 360 / std::max(uint32_t(1), angles));
   }
 
+  /// disk
+  /// @param[in] obj - glObject struct
+  /// @param[in] diam - diametr 
+  /// @param[in] height - height of figure
+  /// @param[in] degStep - coef smooth of surface
+  /// @return Index Buffer size
   static size_t disk(const glObject& obj, uint32_t diam, uint32_t height, uint32_t degStep = 10){
 
-      uint32_t slices = diam;
+    diam = std::max(uint32_t(1), diam);
+  
+    uint32_t slices = diam;
 
-      float diamStep = diam / float(slices),
-            heightStep = height / float(slices);
-      size_t vsz = 0,
-          isz = 0,
-          vOffs = 0,
-          iOffs = 0;
+    float diamStep = diam / float(slices),
+      heightStep = height / float(slices);
+    size_t vsz = 0,
+      isz = 0,
+      vOffs = 0,
+      iOffs = 0;
 
-      std::vector<glm::vec3> commVertices, vertices;
-      std::vector<int> commIndices, indices;
+    std::vector<glm::vec3> commVertices, vertices;
+    std::vector<int> commIndices, indices;
 
-      for (uint32_t i = 0; i < slices; ++i){
+    for (uint32_t i = 0; i < slices; ++i){
 
-          float diamTop = 2 * i * diamStep,
-                diamBott = 2 * (i + 1) * diamStep;
+      float diamTop = 2 * i * diamStep,
+        diamBott = 2 * (i + 1) * diamStep;
 
-          if (i >= slices / 2){
-              diamTop = 2 * (slices - i) * diamStep;
-              diamBott = 2 * (slices - i - 1) * diamStep;
-          }
-
-          _baseObj(diamTop,
-                  diamBott,
-                heightStep, 
-                   degStep,
-           glm::vec3(i * heightStep, 0, 0), 
-           glm::vec3(i * heightStep, 0, 0),
-           uint32_t(vOffs),
-                  vertices, 
-                   indices);
-
-          if (i == 0){
-              vsz = vertices.size();
-              isz = indices.size();
-
-              commVertices.resize(vsz * slices);
-              commIndices.resize(isz * slices);
-          }
-
-          memcpy(commVertices.data() + vOffs, vertices.data(), vsz * sizeof(glm::vec3));
-          memcpy(commIndices.data() + iOffs, indices.data(), isz * sizeof(int));
-
-          vOffs += vsz;
-          iOffs += isz;
+      if (i >= slices / 2){
+        diamTop = 2 * (slices - i) * diamStep;
+        diamBott = 2 * (slices - i - 1) * diamStep;
       }
 
-      vsz = vOffs;
-      isz = iOffs;
+      _baseObj(diamTop,
+              diamBott,
+            heightStep,
+               degStep,
+       glm::vec3(i * heightStep, 0, 0),
+       glm::vec3(i * heightStep, 0, 0),
+       uint32_t(vOffs),
+              vertices,
+               indices);
 
-      ////////////////////////////////////////       
+      if (i == 0){
+        vsz = vertices.size();
+        isz = indices.size();
 
-      glBindVertexArray(obj.vao);
+        commVertices.resize(vsz * slices);
+        commIndices.resize(isz * slices);
+      }
 
-      glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
-      glBufferData(GL_ARRAY_BUFFER, vsz * 3 * sizeof(GLfloat), commVertices.data(), GL_DYNAMIC_DRAW);
+      memcpy(commVertices.data() + vOffs, vertices.data(), vsz * sizeof(glm::vec3));
+      memcpy(commIndices.data() + iOffs, indices.data(), isz * sizeof(int));
 
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ebo);
-      glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), commIndices.data(), GL_STATIC_DRAW);
+      vOffs += vsz;
+      iOffs += isz;
+    }
 
-      glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-      glEnableVertexAttribArray(0);
+    vsz = vOffs;
+    isz = iOffs;
 
-      glBindVertexArray(0);
+    ////////////////////////////////////////       
 
-      return isz;
+    glBindVertexArray(obj.vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
+    glBufferData(GL_ARRAY_BUFFER, vsz * 3 * sizeof(GLfloat), commVertices.data(), GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), commIndices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+
+    return isz;
   }
 
+  /// sphere
+  /// @param[in] obj - glObject struct
+  /// @param[in] diam - diametr 
+  /// @param[in] smooth - coef smooth of figure
+  /// @param[in] degStep - coef smooth of surface
+  /// @return Index Buffer size
   static size_t sphere(const glObject& obj, uint32_t diam, uint32_t smooth = 10, uint32_t degStep = 10){
-       
+    
+    diam = std::max(uint32_t(1), diam);
+
     uint32_t slices = diam * smooth;
 
     float diamStep = diam / float(slices);
@@ -361,7 +418,7 @@ namespace glPV{
     
     std::vector<glm::vec3> commVertices, vertices;
     std::vector<int> commIndices, indices;
-
+        
     for (uint32_t i = 0; i < slices; ++i){
      
       float diamTop = 2 * sqrt(std::max(0.f, diam * diam / 4.f - pow((slices / 2.f - i) * diamStep, 2))),
@@ -407,7 +464,7 @@ namespace glPV{
     glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
     glBufferData(GL_ARRAY_BUFFER, vsz * 3 * sizeof(GLfloat), commVertices.data(), GL_DYNAMIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), commIndices.data(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
@@ -418,13 +475,23 @@ namespace glPV{
     return isz;
   }
 
-  static size_t ring(const glObject& obj, uint32_t ringDiam, uint32_t extDiam, uint32_t smooth = 1, uint32_t degStep = 10){
+  /// ring
+  /// @param[in] obj - glObject struct
+  /// @param[in] ringDiam - ring diametr 
+  /// @param[in] extDiam - external diametr 
+  /// @param[in] smooth - coef smooth of figure
+  /// @param[in] degStep - coef smooth of surface
+  /// @return Index Buffer size
+  static size_t ring(const glObject& obj, uint32_t ringDiam, uint32_t extDiam, uint32_t smooth = 10, uint32_t degStep = 10){
+
+    ringDiam = std::max(uint32_t(1), ringDiam);
+    extDiam = std::max(uint32_t(1), extDiam);
 
     uint32_t slices = ringDiam * smooth;
 
     float deg2rad = glm::pi<float>() / 180.f,
           extRad = extDiam / 2.f,
-          ringStep = 360.f / slices * deg2rad;
+          extRadianStep = 360.f / slices * deg2rad;
     size_t vsz = 0,
            isz = 0,
            vOffs = 0,
@@ -433,14 +500,69 @@ namespace glPV{
     std::vector<glm::vec3> commVertices, vertices;
     std::vector<int> commIndices, indices;
 
-    for (uint32_t i = 0; i < slices/2; ++i){
+    auto baseObj = [](float ringDiam,
+                      float extDiam,
+                      float beginExtRadian,
+                      float endExtRadian,
+                      uint32_t degStep,
+                      uint32_t vOffs,
+                      std::vector<glm::vec3>& outVertices,
+                      std::vector<int>& outIndices){
+
+      degStep = std::max(uint32_t(1), std::min(uint32_t(120), degStep));
+
+      float deg2rad = glm::pi<float>() / 180.f,
+            ringRad = ringDiam / 2.f,
+            extRad = extDiam / 2.f;
+
+      size_t vsz = 360 / degStep * 2;
+
+      outVertices.resize(vsz);
+
+      for (int i = 0; i < vsz / 2; ++i){
+
+        GLfloat deg = i * degStep * deg2rad;
+
+        float dYb = ringRad * sin(deg),
+              dYe = ringRad * sin(deg + degStep / 2.f * deg2rad);
+
+        outVertices[i * 2].x = extRad * cos(beginExtRadian) + dYb * cos(beginExtRadian);
+        outVertices[i * 2].y = ringRad * sin(deg) + extRad * sin(beginExtRadian) - dYb * (1 - sin(beginExtRadian));
+        outVertices[i * 2].z = ringRad * cos(deg);
+
+        outVertices[i * 2 + 1].x = extRad * cos(endExtRadian) + dYe * cos(endExtRadian);
+        outVertices[i * 2 + 1].y = ringRad * sin(deg + degStep / 2.f * deg2rad) + extRad * sin(endExtRadian) - dYe * (1 - sin(endExtRadian));
+        outVertices[i * 2 + 1].z = ringRad * cos(deg + degStep / 2.f * deg2rad);
+      }
+
+      ////////////////////////////////////////
+
+      outIndices.clear();
+      outIndices.reserve(vsz * 3);
+
+      for (int i = 0; i < (vsz - 2); ++i){
+
+        outIndices.push_back(i + vOffs);
+        outIndices.push_back(i + 1 + vOffs);
+        outIndices.push_back(i + 2 + vOffs);
+      }
+
+      outIndices.push_back(vsz - 2 + vOffs);
+      outIndices.push_back(vsz - 1 + vOffs);
+      outIndices.push_back(0 + vOffs);
+
+      outIndices.push_back(vsz - 1 + vOffs);
+      outIndices.push_back(0 + vOffs);
+      outIndices.push_back(1 + vOffs);
+    };
+
+    for (uint32_t i = 0; i < slices; ++i){
      
-      _baseObj(ringDiam,
-               ringDiam,
-                      0,
-                degStep,
-        glm::vec3(extRad * tan(i * ringStep), extRad * sin(i * ringStep), extRad * cos(i * ringStep)),
-        glm::vec3(extRad * tan((i + 1) * ringStep), extRad * sin((i + 1) * ringStep), extRad * cos((i + 1) * ringStep)),
+       baseObj(ringDiam,
+                extDiam,
+      i * extRadianStep,
+(i + 1) * extRadianStep,
+                degStep,      
         uint32_t(vOffs),
                vertices,
                indices);
@@ -470,7 +592,7 @@ namespace glPV{
     glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
     glBufferData(GL_ARRAY_BUFFER, vsz * 3 * sizeof(GLfloat), commVertices.data(), GL_DYNAMIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), commIndices.data(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
@@ -481,8 +603,57 @@ namespace glPV{
     return isz;
   }
   
+  /// parallepd
+  /// @param[in] obj - glObject struct
+  /// @param[in] width - width of figure
+  /// @param[in] height - height of figure
+  /// @param[in] leng - leng of figure
+  /// @return Index Buffer size
   static size_t parallepd(const glObject& obj, uint32_t width, uint32_t height, uint32_t leng){
 
-    return 0;//frustum(obj, 0, diam, height, degStep);
+    std::vector<glm::vec3> vertices{ glm::vec3(0, 0, 0),             // 0 left  top    front 
+                                     glm::vec3(width, 0, 0),         // 1 right top    front
+                                     glm::vec3(0, height, 0),        // 2 left  bottom front
+                                     glm::vec3(width, height, 0),    // 3 right bottom front
+                                     glm::vec3(0, 0, leng),          // 4 left  top    back 
+                                     glm::vec3(width, 0, leng),      // 5 right top    back
+                                     glm::vec3(0, height, leng),     // 6 left  bottom back
+                                     glm::vec3(width, height, leng), // 7 right bottom back
+                                   };
+
+    std::vector<int> indices{ 0, 1, 5,
+                              0, 4, 5,
+                              1, 3, 5,
+                              3, 5, 7, 
+                              3, 6, 7,
+                              3, 2, 6,
+                              0, 2, 6,
+                              0, 4, 6,
+                              0, 1, 3,
+                              0, 2, 3,
+                              5, 6, 7,
+                              4, 5, 6,
+                            };
+
+    size_t vsz = 8,
+           isz = 36;
+
+    ////////////////////////////////////////       
+
+    glBindVertexArray(obj.vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
+    glBufferData(GL_ARRAY_BUFFER, vsz * 3 * sizeof(GLfloat), vertices.data(), GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), indices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+
+    return isz;
+  
   }   
 }
