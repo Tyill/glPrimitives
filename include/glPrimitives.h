@@ -31,6 +31,7 @@
 
 #define GLEW_STATIC 1
 #include <glew/include/glew.h>
+#include <glm/include/glm.hpp>
 
 namespace glPV{
 
@@ -97,6 +98,22 @@ namespace glPV{
     outIndices.push_back(1 + vOffs);
   }
 
+  static void _fillGLObject(const glObject& obj, size_t vsz, const glm::vec3* pVertData, size_t isz, const int* pIndexData){
+
+      glBindVertexArray(obj.vao);
+
+      glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
+      glBufferData(GL_ARRAY_BUFFER, vsz * 3 * sizeof(GLfloat), pVertData, GL_DYNAMIC_DRAW);
+
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ibo);
+      glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), pIndexData, GL_STATIC_DRAW);
+
+      glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+      glEnableVertexAttribArray(0);
+
+      glBindVertexArray(0);
+  }
+
   /// frustum
   /// @param[in] obj - glObject struct
   /// @param[in] diamTop - diametr top
@@ -157,18 +174,7 @@ namespace glPV{
     
     ////////////////////////////////////////       
 
-    glBindVertexArray(obj.vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
-    glBufferData(GL_ARRAY_BUFFER, vsz * 3 * sizeof(GLfloat), commVertices.data(), GL_DYNAMIC_DRAW);
-    
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), commIndices.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindVertexArray(0);
+    _fillGLObject(obj, vsz, commVertices.data(), isz, commIndices.data());
 
     return isz;
   }
@@ -278,18 +284,7 @@ namespace glPV{
 
     ////////////////////////////////////////    
 
-    glBindVertexArray(obj.vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
-    glBufferData(GL_ARRAY_BUFFER, vsz * 3 * sizeof(GLfloat), commVertices.data(), GL_DYNAMIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), commIndices.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindVertexArray(0);
+    _fillGLObject(obj, vsz, commVertices.data(), isz, commIndices.data());
 
     return isz;
   }
@@ -333,11 +328,11 @@ namespace glPV{
     uint32_t slices = diam;
 
     float diamStep = diam / float(slices),
-      heightStep = height / float(slices);
+          heightStep = height / float(slices);
     size_t vsz = 0,
-      isz = 0,
-      vOffs = 0,
-      iOffs = 0;
+           isz = 0,
+           vOffs = 0,
+           iOffs = 0;
 
     std::vector<glm::vec3> commVertices, vertices;
     std::vector<int> commIndices, indices;
@@ -382,18 +377,7 @@ namespace glPV{
 
     ////////////////////////////////////////       
 
-    glBindVertexArray(obj.vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
-    glBufferData(GL_ARRAY_BUFFER, vsz * 3 * sizeof(GLfloat), commVertices.data(), GL_DYNAMIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), commIndices.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindVertexArray(0);
+    _fillGLObject(obj, vsz, commVertices.data(), isz, commIndices.data());
 
     return isz;
   }
@@ -459,18 +443,7 @@ namespace glPV{
 
     ////////////////////////////////////////       
 
-    glBindVertexArray(obj.vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
-    glBufferData(GL_ARRAY_BUFFER, vsz * 3 * sizeof(GLfloat), commVertices.data(), GL_DYNAMIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), commIndices.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindVertexArray(0);
+    _fillGLObject(obj, vsz, commVertices.data(), isz, commIndices.data());
 
     return isz;
   }
@@ -587,18 +560,7 @@ namespace glPV{
 
     ////////////////////////////////////////       
 
-    glBindVertexArray(obj.vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
-    glBufferData(GL_ARRAY_BUFFER, vsz * 3 * sizeof(GLfloat), commVertices.data(), GL_DYNAMIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), commIndices.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindVertexArray(0);
+    _fillGLObject(obj, vsz, commVertices.data(), isz, commIndices.data());
 
     return isz;
   }
@@ -640,18 +602,7 @@ namespace glPV{
 
     ////////////////////////////////////////       
 
-    glBindVertexArray(obj.vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, obj.vbo);
-    glBufferData(GL_ARRAY_BUFFER, vsz * 3 * sizeof(GLfloat), vertices.data(), GL_DYNAMIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, isz * sizeof(GLfloat), indices.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindVertexArray(0);
+    _fillGLObject(obj, vsz, vertices.data(), isz, indices.data());
 
     return isz;
   
